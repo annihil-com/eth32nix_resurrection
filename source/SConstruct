@@ -1,0 +1,70 @@
+#!SCons
+import sys;
+
+# Command line options
+opts = Variables()
+opts.AddVariables(
+	BoolVariable('DEBUG', 'Debug build', False),
+	BoolVariable('QUIET', 'Quiet Output', True)
+)
+ 
+# Main build environment
+env = Environment(options=opts, toolpath=['./scons'], tools=['default', 'DistZip'])
+
+# Generate help text
+Help(opts.GenerateHelpText(env))
+ 
+# Add default compiler flags
+env.Append(
+	CPPFLAGS=['-m32', '-fPIC', '-march=native', '-fno-strict-aliasing', '-fvisibility=hidden'],
+	LINKFLAGS=['-m32', '-shared'],
+	LIBS=['m', 'pthread'],
+)
+
+env.MergeFlags('-I/usr/include/elfutils')
+ 
+# Compiler flags
+if env['DEBUG']:
+	env.Append(
+		CPPFLAGS=['-ggdb3'],
+		CPPDEFINES={'ETH32_DEBUG': '1'},
+		LIBS=['elf', 'bfd', 'opcodes'],
+	)
+else:
+	env.Append(
+		CPPFLAGS=['-O3', '-fomit-frame-pointer', '-ffast-math'],
+		LIBS=['dl', 'elf', 'bfd', 'opcodes'],
+		LINKFLAGS=['-s'],
+	)
+
+# Set build directory
+if env['DEBUG']:
+	buildDir = 'build/debug'
+else:
+	buildDir = 'build/release'
+
+if env['QUIET']:
+	env.Append(CPPFLAGS=['-w'])
+
+def print_cmd_line(s, target, src, env):
+	if 'pk3' in COMMAND_LINE_TARGETS:
+		sys.stdout.write("%s\n"%s)
+	elif env ['QUIET']:
+		sys.stdout.write(" Compiling [\033[1;32m%s\033[0m]\n"%(' and '.join([str(x) for x in src])))
+	else:
+		sys.stdout.write("%s\n"%s)
+
+env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
+
+SConscript(
+	dirs='src',
+	variant_dir=buildDir,
+	duplicate=False,
+	exports='env'
+)
+
+if 'pk3' in COMMAND_LINE_TARGETS:
+    pk3 = env.DistZip("../precompiled/resurrection.pk3", [env.Dir('pk3')])
+    env.Alias("pk3", pk3)
+
+env.Clean(DEFAULT_TARGETS, 'build')

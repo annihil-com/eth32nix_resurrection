@@ -1,0 +1,45 @@
+#!SCons
+ 
+Import('env')
+ 
+# Add current path to include path
+env.Append(CPPPATH=['.'])
+ 
+sources = Split("""
+	CAimbot.cpp
+	CDebug.cpp
+	CDetour.cpp
+	CDrawtools.cpp
+	CEngine.cpp
+	CGui.cpp
+	CHook.cpp
+	CSettings.cpp
+	CSyscall.cpp
+	CTools.cpp
+	CXCommands.cpp
+	eth32.cpp
+	sdk/src/game/q_math.cpp
+	sdk/src/game/bg_misc.cpp
+	sdk/src/game/q_shared.cpp
+	gui/CBanner.cpp
+	gui/CButtons.cpp
+	gui/CCheckbox.cpp
+	gui/CClientWindow.cpp
+	gui/CColorPicker.cpp
+	gui/CControl.cpp
+	gui/CEspConfigWindow.cpp
+	gui/CRadarWindow.cpp
+	gui/CRespawnWindow.cpp
+	gui/CSliders.cpp
+	gui/CStatusWindow.cpp
+	gui/CWeaponWindow.cpp
+	gui/CWindow.cpp
+	gui/CWindowPicker.cpp
+""")
+
+env.Default(
+	env.SharedLibrary(
+		target='../../../precompiled/resurrection',
+		source=sources
+	)
+)
